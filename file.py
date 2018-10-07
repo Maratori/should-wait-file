@@ -1,27 +1,42 @@
-from condition import Condition
-from should import BaseShould
+from pathlib import Path
+from pprint import pprint
+
+from int import Int
+from should import Should
+from str import Str
 
 
 class File:
-    def __init__(self, path: str) -> None:
-        self._path = path
+    def __init__(self, *segments: str) -> None:
+        self._path = Path(*segments)
 
     @property
     def should(self) -> 'FileShould':
-        return FileShould(self)
+        return FileShould(lambda: self)
 
     @property
-    def exists(self) -> bool:
-        return True
-
-
-class FileShould(BaseShould['FileShould']):
-    def __init__(self, file: File) -> None:
-        self._file = file
+    def size(self) -> Int:
+        return Int(10)
 
     @property
-    def exist(self) -> Condition:
-        return Condition(lambda: self._file.exists)
+    def text(self) -> Str:
+        return Str("abc")
 
-    def meet(self, condition: Condition) -> None:
-        condition(self._file)
+
+class FileShould(Should[File, 'FileShould']):
+    def exist(self) -> File:
+        return self.match(lambda it: True)
+
+
+if __name__ == '__main__':
+    File().should.exist()
+    File().should.Not.Not.exist()
+    # File().should.Not.exist()
+
+    File().size.should.be.equal(10)
+    File().size.should.Not.be.equal(11)
+    # File().size.should.Not.be.equal(10)
+
+    pprint(File().size.should)
+    pprint(File().size.should.Not)
+    pprint(File().size.should.Not.Not)
